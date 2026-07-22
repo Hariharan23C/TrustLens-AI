@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">
+                <i class="fas fa-shield-alt"></i> TrustLens AI
+            </h1>
+            <p class="lead">Protecting Students from Online Scams</p>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">Verify Anything</h2>
+                
+                <div class="mb-4">
+                    <div class="btn-group w-100 flex-wrap" role="group">
+                        <input type="radio" class="btn-check" name="type" id="url" value="url" checked>
+                        <label class="btn btn-outline-primary" for="url"><i class="fas fa-link"></i> URL</label>
+                        
+                        <input type="radio" class="btn-check" name="type" id="email" value="email">
+                        <label class="btn btn-outline-primary" for="email"><i class="fas fa-envelope"></i> Email</label>
+                        
+                        <input type="radio" class="btn-check" name="type" id="internship" value="internship">
+                        <label class="btn btn-outline-primary" for="internship"><i class="fas fa-briefcase"></i> Internship</label>
+                        
+                        <input type="radio" class="btn-check" name="type" id="offer" value="offer">
+                        <label class="btn btn-outline-primary" for="offer"><i class="fas fa-file-alt"></i> Offer</label>
+                        
+                        <input type="radio" class="btn-check" name="type" id="qr" value="qr">
+                        <label class="btn btn-outline-primary" for="qr"><i class="fas fa-qrcode"></i> QR</label>
+                        
+                        <input type="radio" class="btn-check" name="type" id="scam_message" value="scam_message">
+                        <label class="btn btn-outline-primary" for="scam_message"><i class="fas fa-comment-dots"></i> Message</label>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control form-control-lg" id="input" placeholder="Enter content...">
+                    <button class="btn btn-primary btn-lg" id="verifyBtn">
+                        <i class="fas fa-search"></i> Verify
+                    </button>
+                </div>
+
+                <div id="result" style="display: none;">
+                    <div class="alert" id="alert">
+                        <h4 id="title"></h4>
+                        <p id="explanation"></p>
+                        <div class="progress">
+                            <div class="progress-bar" id="bar" style="width: 0%"></div>
+                        </div>
+                        <small>Confidence Score</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card border-success text-center">
+                    <div class="card-body">
+                        <h3 class="text-success"><i class="fas fa-check-circle"></i></h3>
+                        <h5>Safe</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-warning text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning"><i class="fas fa-exclamation-triangle"></i></h3>
+                        <h5>Suspicious</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-danger text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger"><i class="fas fa-times-circle"></i></h3>
+                        <h5>Scam</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('verifyBtn').addEventListener('click', function() {
+    const content = document.getElementById('input').value.trim();
+    if (!content) { alert('Please enter content'); return; }
+    
+    const type = document.querySelector('input[name="type"]:checked').value;
+    
+    fetch('/verify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content, type})
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('title').textContent = data.result;
+        document.getElementById('explanation').textContent = data.explanation || 'No details';
+        
+        const alert = document.getElementById('alert');
+        alert.className = 'alert';
+        if (data.result === 'Safe') alert.classList.add('alert-success');
+        else if (data.result === 'Suspicious') alert.classList.add('alert-warning');
+        else alert.classList.add('alert-danger');
+        
+        const bar = document.getElementById('bar');
+        bar.style.width = data.confidence + '%';
+        bar.textContent = Math.round(data.confidence) + '%';
+    })
+    .catch(err => alert('Error: ' + err.message));
+});
+</script>
+{% endblock %}
