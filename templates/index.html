@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustLens AI — Verify before you trust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="scanline" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-lens" aria-hidden="true"></span>
+    <div class="brand-text">
+      <span class="brand-name">TrustLens <em>AI</em></span>
+      <span class="brand-tag">Verify before you trust</span>
+    </div>
+  </div>
+  <div class="stats-strip" id="statsStrip">
+    <div class="stat"><span class="stat-num" id="statTotal">0</span><span class="stat-label">scans run</span></div>
+    <div class="stat"><span class="stat-num" id="statFlagged">0</span><span class="stat-label">flagged risky</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <div class="hero-lens" aria-hidden="true">
+      <div class="lens-ring ring-outer"></div>
+      <div class="lens-ring ring-inner"></div>
+      <div class="lens-sweep"></div>
+      <div class="lens-crosshair"></div>
+    </div>
+    <div class="hero-copy">
+      <p class="eyebrow">One dashboard. Six checks. Built for students.</p>
+      <h1>Before you click, pay, or reply —<br>run it through the lens.</h1>
+      <p class="hero-sub">Paste a link, an email, an "offer letter," or a message you're unsure about.
+        TrustLens scores it and tells you exactly <em>why</em> — no black box, every flag explained.</p>
+    </div>
+  </section>
+
+  <section class="panel-shell">
+
+    <nav class="tabs" role="tablist" aria-label="Verification type">
+      <button class="tab active" data-tab="url" role="tab" aria-selected="true">🔗 URL</button>
+      <button class="tab" data-tab="email" role="tab" aria-selected="false">✉️ Email</button>
+      <button class="tab" data-tab="internship" role="tab" aria-selected="false">🎓 Internship</button>
+      <button class="tab" data-tab="offer" role="tab" aria-selected="false">📄 Offer Letter</button>
+      <button class="tab" data-tab="qr" role="tab" aria-selected="false">▦ QR Code</button>
+      <button class="tab" data-tab="message" role="tab" aria-selected="false">💬 Message</button>
+    </nav>
+
+    <div class="panel-body">
+
+      <!-- URL -->
+      <form class="check-form active" id="form-url" data-endpoint="/api/check-url">
+        <label for="input-url">Paste the URL</label>
+        <input type="text" id="input-url" name="url" placeholder="e.g. http://paypal-secure-verify.xyz/login" required>
+        <button type="submit" class="run-btn">Scan URL</button>
+      </form>
+
+      <!-- EMAIL -->
+      <form class="check-form" id="form-email" data-endpoint="/api/check-email">
+        <label for="input-email-addr">Sender's email address</label>
+        <input type="text" id="input-email-addr" name="email" placeholder="e.g. hr.careers882@gmail.com" required>
+        <label for="input-email-org">Who do they claim to be? <span class="opt">(optional)</span></label>
+        <input type="text" id="input-email-org" name="org" placeholder="e.g. Infosys, TCS, Amazon">
+        <label for="input-email-body">Paste the email body <span class="opt">(optional, improves accuracy)</span></label>
+        <textarea id="input-email-body" name="body" rows="4" placeholder="Paste the message content here..."></textarea>
+        <button type="submit" class="run-btn">Scan Email</button>
+      </form>
+
+      <!-- INTERNSHIP -->
+      <form class="check-form" id="form-internship" data-endpoint="/api/check-internship">
+        <label for="input-intern-text">Paste the internship posting / message</label>
+        <textarea id="input-intern-text" name="text" rows="6" placeholder="Paste the full internship post or WhatsApp/email message..." required></textarea>
+        <label for="input-intern-email">Recruiter's email <span class="opt">(optional)</span></label>
+        <input type="text" id="input-intern-email" name="email" placeholder="e.g. careers@company.com">
+        <button type="submit" class="run-btn">Scan Internship Post</button>
+      </form>
+
+      <!-- OFFER LETTER -->
+      <form class="check-form" id="form-offer" data-endpoint="/api/check-offer-letter">
+        <label for="input-offer-text">Paste the offer letter text</label>
+        <textarea id="input-offer-text" name="text" rows="6" placeholder="Copy-paste the full text of the offer letter (from the PDF/email)..." required></textarea>
+        <label for="input-offer-email">Sender's email <span class="opt">(optional)</span></label>
+        <input type="text" id="input-offer-email" name="email" placeholder="e.g. hr@company.com">
+        <button type="submit" class="run-btn">Scan Offer Letter</button>
+      </form>
+
+      <!-- QR -->
+      <form class="check-form" id="form-qr" data-endpoint="/api/check-qr">
+        <label for="input-qr-file">Upload a QR code image</label>
+        <input type="file" id="input-qr-file" name="qrfile" accept="image/*">
+        <p class="hint" id="qrHint">Decoded entirely in your browser — the image itself is never uploaded.</p>
+        <div class="qr-decoded" id="qrDecoded" hidden>
+          <span class="qr-decoded-label">Decoded content:</span>
+          <code id="qrDecodedText"></code>
+        </div>
+        <button type="submit" class="run-btn" id="qrSubmitBtn" disabled>Scan QR Content</button>
+      </form>
+
+      <!-- MESSAGE -->
+      <form class="check-form" id="form-message" data-endpoint="/api/check-message">
+        <label for="input-msg-text">Paste the SMS / WhatsApp / DM text</label>
+        <textarea id="input-msg-text" name="text" rows="6" placeholder="Paste the suspicious message here..." required></textarea>
+        <button type="submit" class="run-btn">Scan Message</button>
+      </form>
+
+      <div class="result-zone" id="resultZone" hidden>
+        <div class="stamp" id="verdictStamp">SAFE</div>
+        <div class="result-main">
+          <div class="score-row">
+            <span class="score-label">Risk score</span>
+            <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+            <span class="score-num" id="scoreNum">0/100</span>
+          </div>
+          <h3 class="why-heading">Why this verdict</h3>
+          <ul class="reasons-list" id="reasonsList"></ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="history-shell">
+    <h2>Recent scans</h2>
+    <div class="history-table-wrap">
+      <table class="history-table" id="historyTable">
+        <thead>
+          <tr><th>Type</th><th>Input</th><th>Verdict</th><th>Score</th><th>When</th></tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="5" class="empty-row">No scans yet — run your first check above.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p>TrustLens AI is a rule-based, fully explainable heuristic checker — it flags patterns, it doesn't guarantee outcomes. When in doubt, verify directly with the official organisation.</p>
+  </footer>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
